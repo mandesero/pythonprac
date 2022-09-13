@@ -1,0 +1,2 @@
+print(max(eval(input())))
+
