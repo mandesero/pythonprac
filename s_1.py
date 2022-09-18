@@ -1,2 +1,4 @@
-print(max(eval(input())))
+'''
+Testing
+'''
 
