@@ -6,4 +6,4 @@ def calc(foo1, foo2, foo3):
 
 
 F = calc(*eval(input()))
-print(F(int(input())))
+print(F(eval(input())))
