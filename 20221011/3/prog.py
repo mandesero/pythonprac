@@ -17,8 +17,6 @@ for _ in range(new_nw):
 field += "#" * a
 
 print(field)
-nr = field.count('.')
-nw = field.count('~')
 length = len(str(nr + nw) + str(max(nr, nw))) + 1
 if nr >= nw:
     print(("."*20).ljust(20), f"{nr}/{nr + nw}".rjust(length))
