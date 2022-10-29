@@ -5,8 +5,8 @@ def fib(m, n):
         while True:
             yield x
             x, y = x + y, x
-    gen = gen_fib()
-    return islice([next(gen) for i in range(n + 1)], m, n + 2)
+    return islice(gen_fib(), m, m + n)
+    
 
 
 if __name__ == '__main__':
