@@ -15,6 +15,6 @@ def slide(seq, n):
 
 
 if __name__ == '__main__':
-    seq, n = eval(input())
-    print(*slide(seq, n))
+    import sys
+    exec(sys.stdin.read())
     

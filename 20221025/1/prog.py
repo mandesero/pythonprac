@@ -8,8 +8,6 @@ def fib(m, n):
     return islice(gen_fib(), m, m + n)
     
 
-
 if __name__ == '__main__':
-    m, n = eval(input())
-    it = fib(m, n)
-    print(*it, sep=', ')
+    import sys
+    exec(sys.stdin.read())

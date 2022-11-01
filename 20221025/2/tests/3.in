@@ -1,1 +1,1 @@
-"QWERTYUIO", 3
+print(*slide("QWERTYUIO", 3))
