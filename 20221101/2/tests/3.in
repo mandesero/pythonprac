@@ -1,1 +1,2 @@
-"QWERTYUIO", 3
+a = Triangle((1,1), (2,2), (3,3))
+print(a in a, a > a, a & a)
