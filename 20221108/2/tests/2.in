@@ -1,6 +1,5 @@
-a = Triangle((0,0), (1,0), (0, 100))
-b = Triangle((0,0), (-1, 0), (0, -100))
-print(a in a, a & a, a > a)
-print(a in b, b in a, a & b, b & a, a > b, b > a)
-print(b in b, b & b, b > b)
-
+iwjuefb
+oawuejrgfn
+vdfiok
+(0,0), (-1, 0), (0, -100___)
+(0,0), (-1, 0), (0, -100)
