@@ -1,0 +1,16 @@
+@objcount
+class C:
+    def __init__(self, a):
+        self.a = str(a) * len(str(a))
+
+    def __str__(self):
+        return self.a
+
+c, d, e = C(1), C("dsad"), C({1,2,3})
+print(C.counter)
+print(c, d, e)
+del c
+del e
+print(C.counter)
+
+

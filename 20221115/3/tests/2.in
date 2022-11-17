@@ -1,0 +1,20 @@
+alp = Alpha(c=10, z=2, a=42)
+try:
+    alp.qqq = 213
+except Exception:
+    print("...")
+
+try:
+    print(alp.c)
+    print(alp.q)
+except Exception:
+    print("|||")
+print(str(alp) * 4)
+try:
+    alq = AlphaQ(qwerty=[], z=2, a=42)
+except Exception:
+    print("///")
+alq = AlphaQ(b=AlphaQ(a=12), z=2, a=42)
+print(alq, alq.b)
+
+

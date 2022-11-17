@@ -1,0 +1,26 @@
+@objcount
+class A(list):
+    lalala = []
+    def __init__(self, arr=[]):
+        super().__init__(arr)
+
+    def __del__(self):
+        self.lalala.append(self.__class__.counter)
+
+a = A(list(range(5)))
+print(a.counter)
+del a
+print(A.lalala)
+
+try:
+    del a
+except Exception:
+    print(A.lalala * 100)
+b, c = A([1, 2]), A(A([1,2,3]))
+b.lalala.append(c)
+print(A.counter)
+del b
+del c
+print(A.lalala)
+
+
