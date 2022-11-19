@@ -1,3 +1,6 @@
+from math import *
+
+
 def calc(foo1, foo2, foo3):
     x = lambda x: eval(foo1)
     y = lambda x: eval(foo2)

@@ -14,7 +14,7 @@ class Triangle:
                 buff = input()
                 res = self.triangleSquare(buff)
             except InvalidInput:
-                print("InvalidInput")
+                print("Invalid input")
             except BadTriangle:
                 print("Not a triangle")
             else:
