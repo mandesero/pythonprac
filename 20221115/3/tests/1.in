@@ -1,6 +1,13 @@
+from time import time
+
+t0 = time()
 alp = Alpha(c=10, z=2, a=42)
 alp.e = 123
 print(alp)
+t1 = time() - t0
+t0 = time()
 alq = AlphaQ(c=10, z=2, a=42)
 alq.e = 123
 print(alq)
+t2 = time() - t0
+print(t1 < t2)
