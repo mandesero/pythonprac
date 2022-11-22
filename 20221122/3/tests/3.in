@@ -1,0 +1,20 @@
+from time import time
+from string import ascii_lowercase
+
+t0 = time()
+a = Alpha()
+for i in range(1000):
+    for l in ascii_lowercase:
+        setattr(a, l, i)
+print(a)
+t1 = time() - t0
+t0 = time()
+
+a = AlphaQ()
+for i in range(1000):
+    for l in ascii_lowercase:
+        setattr(a, l, i)
+print(a)
+t2 = time() - t0
+
+print(t1 < t2)
