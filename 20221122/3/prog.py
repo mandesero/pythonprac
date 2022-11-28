@@ -1,47 +1,38 @@
-from string import ascii_lowercase
+class WaveHead:
+    def __init__(self, filename):
+        try:
+            if not filename.endswith('wav'):
+                raise RuntimeError
 
+            with open(filename, 'rb') as file:
+                self.data = file.read()
 
-class Alpha:
-    __slots__ = tuple(ascii_lowercase)
+                if len(self.data) < 44:
+                    raise RuntimeError
 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+                self.file_size = self.little_endian_convert(self.data[4:8])
+                self.format_type = self.little_endian_convert(self.data[20:22])
+                self.nchannels = self.little_endian_convert(self.data[22:24])
+                self.framerate = self.little_endian_convert(self.data[24:28])
+                self.bps = self.little_endian_convert(self.data[34:36])
+                self.data_size = self.little_endian_convert(self.data[40:44])
 
-    def __str__(self):
-        ans = []
-        for k in self.__class__.__slots__:
-            if hasattr(self, str(k)):
-                ans.append(f"{k}: {getattr(self, str(k))}")
-        return ", ".join(ans)
-
-
-class AlphaQ(dict):
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            if k not in ascii_lowercase:
-                raise AttributeError
-        super().__init__(kwargs)
-
-    def __getattr__(self, item):
-        if item not in self:
-            raise AttributeError
-        return self[item]
-
-    def __setattr__(self, key, value):
-        if key in ascii_lowercase:
-            self[key] = value
-        else:
-            raise AttributeError
+                print(self)
+        except Exception:
+            print("No")
 
     def __str__(self):
-        ans = []
-        for k, v in sorted(self.items(), key=lambda x: x[0]):
-            ans.append(f"{k}: {v}")
-        return ", ".join(ans)
+        return f"Size={self.file_size}, Type={self.format_type}, Channels={self.nchannels}, Rate={self.framerate}, Bits={self.bps}, Data size={self.data_size}"
 
+    @staticmethod
+    def little_endian_convert(byte_arr):
+        res = 0
+        for i in range(len(byte_arr) - 1, -1, -1):
+            res += byte_arr[i]
+            res = res << 8
+        return res >> 8
 
-import sys
 
 if __name__ == '__main__':
-    exec(sys.stdin.read())
+    filepath = input()
+    WaveHead(filepath)
