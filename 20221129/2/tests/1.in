@@ -1,1 +1,12 @@
-ûë òåêñò íà ðóññêîì â êîäèðîâêå
+class C(metaclass=check):
+    A: int
+    B: str = "QQ"
+
+c = C()
+print(c.check_annotations())
+c.A = "ZZ"
+print(c.check_annotations())
+c.A = 100500
+print(c.check_annotations())
+c.B = type("Boo",(str,),{})(42)
+print(c.check_annotations())
