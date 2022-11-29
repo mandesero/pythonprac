@@ -7,5 +7,6 @@ class B(A):
     def print(_, b):
         print(b ** 2)
 
+
 a = B()
 a.print(1)

@@ -12,14 +12,3 @@ class C(metaclass=dump):
 c = C(10)
 print(c.add(9))
 print(c.add(9, another=11))
-c.new_f = lambda x, a=1: x + 1 + a
-
-print(c.new_f(6, 3))
-
-def pupa(a, b):
-    return a + b
-
-c.pupa = pupa
-print(c.pupa(3, 11))
-
-c.boba()
