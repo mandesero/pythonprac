@@ -19,7 +19,7 @@ class WaveHead:
 
                 print(self)
         except Exception:
-            print("No")
+            print("NO")
 
     def __str__(self):
         return f"Size={self.file_size}, Type={self.format_type}, Channels={self.nchannels}, Rate={self.framerate}, Bits={self.bps}, Data size={self.data_size}"
