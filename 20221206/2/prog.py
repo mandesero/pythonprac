@@ -1,23 +1,58 @@
+import asyncio
 import sys
-from inspect import get_annotations
+from copy import copy
+import random
 
 
-class check(type):
-    def __new__(mcs, name, bases, classdict):
-        def check_annotations(self, *args):
-            annotations = get_annotations(self.__class__)
-            for field, tpy in annotations.items():
-                try:
-                    if not isinstance(getattr(self, field), tpy):
-                        break
-                except AttributeError:
-                    break
-            else:
-                return True
-            return False
+async def merge(A, B, start, middle, finnish, event_in1, event_in2, event_out):
+    await event_in1.wait()
+    await event_in2.wait()
 
-        classdict["check_annotations"] = check_annotations
-        return super().__new__(mcs, name, bases, classdict)
+    tmp = copy(A)
+    t1, t2 = start, middle
+
+    for i in range(start, finnish):
+
+        if t1 == middle:
+            B[i:finnish] = tmp[t2:finnish]
+            break
+
+        if t2 == finnish:
+            B[i:finnish] = tmp[t1:middle]
+            break
+
+        if tmp[t1] < tmp[t2]:
+            B[i] = tmp[t1]
+            t1 += 1
+        else:
+            B[i] = tmp[t2]
+            t2 += 1
+
+    event_out.set()
+
+
+async def mtasks(A):
+    result = copy(A)
+    def foo(i, j, event, tasks=[]):
+        if -1 <= i - j <= 1:
+            event.set()
+            return
+
+        event_in1, event_in2 = asyncio.Event(), asyncio.Event()
+        task = asyncio.create_task(
+            merge(
+                result, result,
+                i, (i + j) // 2, j,
+                event_in1, event_in2, event
+            )
+        )
+        tasks.append(task)
+
+        foo(i, (i + j) // 2, event_in1)
+        foo((i + j) // 2, j, event_in2)
+        return tasks
+
+    return foo(0, len(result), asyncio.Event()), result
 
 
 if __name__ == '__main__':

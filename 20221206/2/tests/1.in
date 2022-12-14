@@ -1,12 +1,18 @@
-class C(metaclass=check):
-    A: int
-    B: str = "QQ"
+import asyncio
 
-c = C()
-print(c.check_annotations())
-c.A = "ZZ"
-print(c.check_annotations())
-c.A = 100500
-print(c.check_annotations())
-c.B = type("Boo",(str,),{})(42)
-print(c.check_annotations())
+async def main(A):
+    tasks, B = await mtasks(A)
+    print(len(tasks))
+    random.shuffle(tasks)
+    await asyncio.gather(*tasks)
+    return B
+
+
+random.seed(1337)
+A = random.choices(range(10), k=33)
+print(A)
+B = asyncio.run(main(A))
+print(*A)
+print(*B)
+print(*sorted(A))
+print(B == sorted(A))

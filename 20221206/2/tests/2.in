@@ -1,9 +1,18 @@
-class C(metaclass=check):
-    A: int
-    B: str = "QQ"
+import asyncio
 
-C.A = 1
-c = C()
-print(c.check_annotations())
-c.B = 123
-print(c.check_annotations())
+async def main(A):
+    tasks, B = await mtasks(A)
+    print(len(tasks))
+    random.shuffle(tasks)
+    await asyncio.gather(*tasks)
+    return B
+
+
+random.seed(228)
+A = random.choices(range(10), k=40)
+print(A)
+B = asyncio.run(main(A))
+print(*A)
+print(*B)
+print(*sorted(A))
+print(B == sorted(A))

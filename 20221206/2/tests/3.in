@@ -1,7 +1,17 @@
-class A(metaclass=check):
-    A: int = 0.0
-    B: int = "QWE"
+import asyncio
 
-print(A().check_annotations())
-A.A = A.B = 1
-print(A().check_annotations())
+async def main(A):
+    tasks, B = await mtasks(A)
+    print(len(tasks))
+    random.shuffle(tasks)
+    await asyncio.gather(*tasks)
+    return B
+
+
+A = list(reversed(range(100)))
+print(A)
+B = asyncio.run(main(A))
+print(*A)
+print(*B)
+print(*sorted(A))
+print(B == sorted(A))
