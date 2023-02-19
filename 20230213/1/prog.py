@@ -6,7 +6,7 @@ def get_branches():
     '''
     Возврашает словарь <ветка> : <путь> 
     '''
-    return {branch.split('/')[-1]: branch for branch in iglob('../.git/refs/heads/*', recursive=True)}
+    return {branch.split('/')[-1]: branch for branch in iglob('../../.git/refs/heads/*', recursive=True)}
 
 
 def get_last_commit(branch):
@@ -21,7 +21,7 @@ def get_last_commit(branch):
     
     with open(branches[branch], 'r') as commit_hash_file:
         commit_hash = commit_hash_file.read()
-        commit_file_path = '../.git/objects/' + commit_hash[0:2] + '/' + commit_hash[2:].replace('\n', '')
+        commit_file_path = '../../.git/objects/' + commit_hash[0:2] + '/' + commit_hash[2:].replace('\n', '')
         
 
         with open(commit_file_path, 'rb') as commit_file:
@@ -42,10 +42,35 @@ def get_last_commit(branch):
             return commit_data, commit_msg
 
 
+def tree(branch):
+    '''
+    Выводит объект-дерево, на который указывает последний коммит ветки branch
+    '''
+    commit_data, commit_msg = get_last_commit(branch)
+    tree_hash = commit_data[0].split()[1]
+
+    tree_file_path = '../../.git/objects/' + tree_hash[0:2] + '/' + tree_hash[2:].replace('\n', '')
+
+    with open(tree_file_path, 'rb') as tree_file:
+        tree_data = zlib.decompress(tree_file.read())
+        data = tree_data.partition(b'\x00')[-1]
+        while data:
+            obj, _, data = data.partition(b'\x00')
+            obj_mode, obj_name = obj.split()
+            obj_num = data[:20].hex()
+            data = data[20:]
+            if obj_mode.decode() == '40000':
+                obj_type = 'tree'
+            if obj_mode.decode() == '100644':
+                obj_type = 'blob'
+            print(obj_type, obj_num, obj_name.decode())
+
+
 def main():
     branch = input()
-    commit_data, commit_msg = get_last_commit(branch)
-    print(*commit_data, commit_msg, sep='\n')
+    tree(branch)
+    # commit_data, commit_msg = get_last_commit(branch)
+    # print(*commit_data, commit_msg, sep='\n')
 
 
 
