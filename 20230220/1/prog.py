@@ -6,10 +6,10 @@ class Game:
         self.field = [[None] * 10 for i in range(10)]
         self.pos = [0, 0]
 
-    def addmon(self, x, y, message):
+    def addmon(self, x, y, name, message):
         flag = self.field[x][y] is None
-        self.field[x][y] = cs.cowsay(message=message)
-        print(f"Added monster to ({x}, {y}) saying {message}")
+        self.field[x][y] = message, name
+        print(f"Added monster {name} to ({x}, {y}) saying {message}")
         if not flag:
             print("Replaced the old monster")
 
@@ -30,7 +30,7 @@ class Game:
 
     def encounter(self, x, y):
         if monster := self.field[x][y]:
-            print(monster)
+            print(cs.cowsay(message=monster[0]))
 
     def start(self):
         try:
@@ -39,11 +39,13 @@ class Game:
                 match command.split():
                     case [way]:
                         self.move(way)
-                    case "addmon", x, y, *message:
-                        self.addmon(int(x), int(y), " ".join(list(message)))
+                    case "addmon", name, x, y, *message:
+                        if name in cs.list_cows():
+                            self.addmon(int(x), int(y), name, " ".join(list(message)))
+                        else:
+                            print("Cannot add unknown monster")
                     case _:
                         break
-
         except EOFError:
             pass
 
