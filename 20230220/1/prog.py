@@ -30,7 +30,7 @@ class Game:
 
     def encounter(self, x, y):
         if monster := self.field[x][y]:
-            print(cs.cowsay(message=monster[0]))
+            print(cs.cowsay(message=monster[0], cow=monster[1]))
 
     def start(self):
         try:
