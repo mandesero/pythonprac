@@ -1,0 +1,23 @@
+Added monster to (0, 0) saying MONSTER!!!
+Moved to (1, 0)
+Moved to (0, 0)
+ ____________ 
+< MONSTER!!! >
+ ------------ 
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+Added monster to (0, 0) saying NEW MONSTER!!!
+Replaced the old monster
+Moved to (0, 1)
+Moved to (0, 0)
+ ________________ 
+< NEW MONSTER!!! >
+ ---------------- 
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
