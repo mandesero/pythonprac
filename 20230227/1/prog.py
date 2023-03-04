@@ -1,4 +1,5 @@
 import cowsay as cs
+import shlex as sx
 
 
 class Game:
@@ -14,7 +15,6 @@ class Game:
             print("Replaced the old monster")
 
     def move(self, way):
-
         match way:
             case "up":
                 self.pos[1] = (self.pos[1] + 1) % 10
@@ -35,17 +35,33 @@ class Game:
     def start(self):
         try:
             while True:
-                command = input()
-                match command.split():
-                    case [way]:
-                        self.move(way)
-                    case "addmon", name, x, y, *message:
-                        if name in cs.list_cows():
-                            self.addmon(int(x), int(y), name, " ".join(list(message)))
-                        else:
-                            print("Cannot add unknown monster")
-                    case _:
-                        break
+                command = sx.split(input())
+                try:
+                    match len(command):
+                        case 1:
+                            if command[0] == "exit":
+                                return
+                            self.move(command[0])
+                        case 9:
+                            mstr_name = command[1]
+                            hello_string = command[command.index("hello") + 1]
+                            hp = command[command.index("hp") + 1]
+                            x, y = (
+                                command[command.index("coords") + 1],
+                                command[command.index("coords") + 2],
+                            )
+
+                            if mstr_name not in cs.list_cows():
+                                raise ValueError
+
+                            self.addmon(x, y, mstr_name, hello_string, hp)
+
+                        case _:
+                            raise SyntaxError
+                except ValueError:
+                    print("Cannot add unknown monster")
+                except SyntaxError:
+                    print("Unknown command")
         except EOFError:
             pass
 
