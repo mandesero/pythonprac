@@ -1,4 +1,23 @@
 import cowsay as cs
+from io import StringIO
+
+cust_mstr = cs.read_dot_cow(StringIO("""
+$the_cow = <<EOC;
+         $thoughts
+          $thoughts
+    ,_                    _,
+    ) '-._  ,_    _,  _.-' (
+    )  _.-'.|\\--//|.'-._  (
+     )'   .'\/o\/o\/'.   `(
+      ) .' . \====/ . '. (
+       )  / <<    >> \  (
+        '-._/``  ``\_.-'
+  jgs     __\\'--'//__
+         (((""`  `"")))
+EOC
+"""))
+
+
 
 
 class Game:
@@ -30,7 +49,10 @@ class Game:
 
     def encounter(self, x, y):
         if monster := self.field[x][y]:
-            print(cs.cowsay(message=monster[0], cow=monster[1]))
+            if monster[1] == "jgsbat":
+                print(cs.cowthink(message=monster[0], cowfile=cust_mstr))
+            else:
+                print(cs.cowsay(message=monster[0], cow=monster[1]))
 
     def start(self):
         try:
@@ -40,7 +62,7 @@ class Game:
                     case [way]:
                         self.move(way)
                     case "addmon", name, x, y, *message:
-                        if name in cs.list_cows():
+                        if name in cs.list_cows() + ['jgsbat']:
                             self.addmon(int(x), int(y), name, " ".join(list(message)))
                         else:
                             print("Cannot add unknown monster")
