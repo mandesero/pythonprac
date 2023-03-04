@@ -7,10 +7,10 @@ class Game:
         self.field = [[None] * 10 for i in range(10)]
         self.pos = [0, 0]
 
-    def addmon(self, x, y, name, message):
+    def addmon(self, x, y, name, message, hp):
         flag = self.field[x][y] is None
-        self.field[x][y] = message, name
-        print(f"Added monster {name} to ({x}, {y}) saying {message}")
+        self.field[x][y] = [message, name, hp]
+        print(f"Added monster {name} to ({x}, {y}) saying {sx.quote(message)} with hp {hp}")
         if not flag:
             print("Replaced the old monster")
 
@@ -31,6 +31,7 @@ class Game:
     def encounter(self, x, y):
         if monster := self.field[x][y]:
             print(cs.cowsay(message=monster[0], cow=monster[1]))
+            monster[-1] -= 1
 
     def start(self):
         try:
@@ -45,10 +46,10 @@ class Game:
                         case 9:
                             mstr_name = command[1]
                             hello_string = command[command.index("hello") + 1]
-                            hp = command[command.index("hp") + 1]
+                            hp = int(command[command.index("hp") + 1])
                             x, y = (
-                                command[command.index("coords") + 1],
-                                command[command.index("coords") + 2],
+                                int(command[command.index("coords") + 1]),
+                                int(command[command.index("coords") + 2]),
                             )
 
                             if mstr_name not in cs.list_cows():
