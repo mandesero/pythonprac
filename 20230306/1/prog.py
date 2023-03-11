@@ -81,6 +81,24 @@ class Game(cmd.Cmd):
         """
         print(*(cs.list_cows() + ["jgsbat"]))
 
+    def do_attach(self, args):
+        '''
+        Атаковать монстра (атака наносит 10 урона).
+        '''
+
+        if monster := self.field[self.pos[0]][self.pos[1]]:
+            damage = 10 if monster[-1] >= 10 else monster[-1]
+            monster[-1] -= damage
+
+            print(f"Attacked {monster[1]}, damage {int(damage)} hp")
+            if monster[-1]:
+                print(f"{monster[1]} now has {monster[-1]}")
+            else:
+                print(f"{monster[1]} died")
+                self.field[self.pos[0]][self.pos[1]] = None
+        else:
+            print("No monster here")
+
     def do_exit(self, args):
         """
         Завершает работу коммандной строки.
