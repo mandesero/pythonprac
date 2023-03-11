@@ -3,6 +3,19 @@ import shlex as sx
 import cmd
 
 from custom_monster import cust_mstr
+from defaults import COMPLETE
+
+
+def complete(text, line, begidx, endidx):
+    args = sx.split(line)
+    if args == ["attack"] or not args[1].startswith("with"):
+        key, command = "", "attack"
+    elif begidx == endidx:
+        key, command = args[-1], 
+    else:
+        key, command = args[-2], args[0]
+    
+    return [s for s in COMPLETE[command][key] if s.startswith(text)]
 
 
 class Game(cmd.Cmd):
@@ -81,12 +94,22 @@ class Game(cmd.Cmd):
         """
         print(*(cs.list_cows() + ["jgsbat"]))
 
-    def do_attach(self, args):
+    def do_attack(self, args):
         '''
         Атаковать монстра (атака наносит 10 урона).
         '''
-
+        name = "monster"
+        if args := sx.split(args):
+            name = args[0]
+            if name not in cs.list_cows() + ["jgsbat"]:
+                print("Unknown monster")
+                return
+        
         if monster := self.field[self.pos[0]][self.pos[1]]:
+            if args and name != monster[1]:
+                print(f"No {name} here")
+                return
+
             damage = 10 if monster[-1] >= 10 else monster[-1]
             monster[-1] -= damage
 
@@ -97,7 +120,11 @@ class Game(cmd.Cmd):
                 print(f"{monster[1]} died")
                 self.field[self.pos[0]][self.pos[1]] = None
         else:
-            print("No monster here")
+            print(f"No {name} here")
+    
+
+    def complete_attack(self, text, line, begidx, endidx):
+        return complete(text, line, begidx, endidx)
 
     def do_exit(self, args):
         """
