@@ -1,39 +1,58 @@
 import cowsay as cs
-from io import StringIO
 import shlex as sx
+import cmd
 
-cust_mstr = cs.read_dot_cow(StringIO("""
-$the_cow = <<EOC;
-         $thoughts
-          $thoughts
-    ,_                    _,
-    ) '-._  ,_    _,  _.-' (
-    )  _.-'.|\\--//|.'-._  (
-     )'   .'\/o\/o\/'.   `(
-      ) .' . \====/ . '. (
-       )  / <<    >> \  (
-        '-._/``  ``\_.-'
-  jgs     __\\'--'//__
-         (((""`  `"")))
-EOC
-"""))
+from custom_monster import cust_mstr
 
 
+class Game(cmd.Cmd):
+    field = [[None] * 10 for i in range(10)]
+    pos = [0, 0]
 
+    def do_addmon(self, args):
+        """
+        Добавление монстра на поле.
 
-class Game:
-    def __init__(self):
-        self.field = [[None] * 10 for i in range(10)]
-        self.pos = [0, 0]
+        addmon <monster_name> hello <hello_string> hp <hitpoints> coords <x> <y>
 
-    def addmon(self, x, y, name, message, hp):
+        Параметры:
+            <monster_name> : имя монстра (см. allow_monsters - список допустимых монстров);
+            hello          : строка приветствие, которую выводит монстр;
+            hp             : здоровье монстр;
+            coords         : координаты монстра на поле;
+
+        """
+
+        command = sx.split(args)
+
+        name = command[0]
+        message = command[command.index("hello") + 1]
+        hp = int(command[command.index("hp") + 1])
+        x, y = (
+            int(command[command.index("coords") + 1]),
+            int(command[command.index("coords") + 2]),
+        )
+
+        if name not in (cs.list_cows() + ["jgsbat"]):
+            print("Cannot add unknown monster")
+            return
+
         flag = self.field[x][y] is None
         self.field[x][y] = [message, name, hp]
-        print(f"Added monster {name} to ({x}, {y}) saying {sx.quote(message)} with hp {hp}")
+        print(
+            f"Added monster {name} to ({x}, {y}) saying {sx.quote(message)} with hp {hp}"
+        )
         if not flag:
             print("Replaced the old monster")
 
-    def move(self, way):
+    def do_move(self, args):
+        """
+        Перемещение по полю.
+
+        move [up|down|right|left]
+        """
+
+        way = sx.split(args)[0]
         match way:
             case "up":
                 self.pos[1] = (self.pos[1] + 1) % 10
@@ -45,9 +64,10 @@ class Game:
                 self.pos[0] = (self.pos[0] - 1) % 10
 
         print(f"Moved to ({self.pos[0]}, {self.pos[1]})")
-        self.encounter(self.pos[0], self.pos[1])
+        self.onecmd(f"encounter {self.pos[0]} {self.pos[1]}")
 
-    def encounter(self, x, y):
+    def do_encounter(self, args):
+        x, y = list(map(int, sx.split(args)))
         if monster := self.field[x][y]:
             if monster[1] == "jgsbat":
                 print(cs.cowthink(message=monster[0], cowfile=cust_mstr))
@@ -55,43 +75,22 @@ class Game:
                 print(cs.cowsay(message=monster[0], cow=monster[1]))
             monster[-1] -= 1
 
-    def start(self):
-        try:
-            while True:
-                command = sx.split(input())
-                try:
-                    match len(command):
-                        case 1:
-                            if command[0] == "exit":
-                                return
-                            self.move(command[0])
-                        case 9:
-                            mstr_name = command[1]
-                            hello_string = command[command.index("hello") + 1]
-                            hp = int(command[command.index("hp") + 1])
-                            x, y = (
-                                int(command[command.index("coords") + 1]),
-                                int(command[command.index("coords") + 2]),
-                            )
+    def do_allow_monsters(self, args):
+        """
+        Список допустимых имен монстров.
+        """
+        print(*(cs.list_cows() + ["jgsbat"]))
 
-                            if mstr_name not in cs.list_cows() + ["jgsbat"]:
-                                raise ValueError
-
-                            self.addmon(x, y, mstr_name, hello_string, hp)
-
-                        case _:
-                            raise SyntaxError
-                except ValueError:
-                    print("Cannot add unknown monster")
-                except SyntaxError:
-                    print("Unknown command")
-        except EOFError:
-            pass
+    def do_exit(self, args):
+        """
+        Завершает работу коммандной строки.
+        """
+        return 1
 
 
 def main():
     print("<<< Welcome to Python-MUD 0.1 >>>")
-    Game().start()
+    Game().cmdloop()
 
 
 if __name__ == "__main__":
