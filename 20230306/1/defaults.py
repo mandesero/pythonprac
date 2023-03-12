@@ -1,3 +1,6 @@
+import cowsay
+
+
 WEAPONS = {
     "sword": 10,
     "spear": 15,
@@ -5,7 +8,8 @@ WEAPONS = {
 }
 
 COMPLETE = {
-    "attach": {
+    "attack": {
         "with": ["sword", "spear", "axe"],
+        "": cowsay.list_cows() + ["jgsbat"],
     },
 }

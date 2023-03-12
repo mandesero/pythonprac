@@ -8,10 +8,20 @@ from defaults import WEAPONS, COMPLETE
 
 def complete(text, line, begidx, endidx):
     args = sx.split(line)
-    if begidx == endidx:
-        key, command = args[-1], args[0]
-    else:
-        key, command = args[-2], args[0]
+
+    match args:
+        case ["attack"]:
+            key, command = "", "attack"
+        case ["attack", t]:
+            if t == "with":
+                key, command = "with", "attack"
+            else:
+                key, command = "", "attack"
+        case ["attack", _, "with"]:
+            key, command = "with", "attack"
+        case ["attack", _, "with", _]:
+            key, command = "with", "attack"
+
     return [s for s in COMPLETE[command][key] if s.startswith(text)]
 
 
@@ -91,22 +101,33 @@ class Game(cmd.Cmd):
         """
         print(*(cs.list_cows() + ["jgsbat"]))
 
-    def do_attach(self, args):
+    def do_attack(self, args):
         """
-        Атаковать монстра (по дефолту атака наносит 10 урона).
+        Атаковать монстра (стандратная атака наносит 10 урона).
+
+        attack <name> with <weapon>
+
+        Параметры:
+            <name>         : имя монстра (см. allow_monsters - список допустимых монстров);
+            <weapon>       : оружие для атаки;
         """
+        name = None
         weapon = "sword"
         if args := sx.split(args):
-            if args[0].lower() == "with":
-                weapon = args[1]
-                if weapon not in WEAPONS:
-                    print("Unknown weapon")
-                    return
-            else:
-                print("Unknown command")
-                return
+            match args:
+                case name, _, weapon:
+                    name = name
+                    weapon = weapon
+                case _, weapon:
+                    weapon = weapon
+                case name:
+                    name = name[0]
 
         if monster := self.field[self.pos[0]][self.pos[1]]:
+            if name and name != monster[1]:
+                print(f"No {name} here")
+                return
+
             damage = WEAPONS[weapon] if monster[-1] >= WEAPONS[weapon] else monster[-1]
             monster[-1] -= damage
 
@@ -117,7 +138,10 @@ class Game(cmd.Cmd):
                 print(f"{monster[1]} died")
                 self.field[self.pos[0]][self.pos[1]] = None
         else:
-            print("No monster here")
+            print(f"No {'monster' if not name else name} here")
+
+    def complete_attack(self, text, line, begidx, endidx):
+        return complete(text, line, begidx, endidx)
 
     def complete_attach(self, text, line, begidx, endidx):
         return complete(text, line, begidx, endidx)
