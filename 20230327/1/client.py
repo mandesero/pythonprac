@@ -75,6 +75,11 @@ class Game(cmd.Cmd):
             case _:
                 print("Invalid arguments")
 
+    
+    def do_sayall(self, args):
+        message = args + '\n'
+        s.send(message.encode())
+
     def do_quit(self, args):
         s.send("quit\n".encode())
         self.onecmd("exit")
