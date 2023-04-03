@@ -13,10 +13,15 @@ import readline
 from custom_monster import cust_mstr
 from defaults import WEAPONS
 
+
 list_cows = cs.list_cows() + ["jgsbat"]
 
 
 class Game(cmd.Cmd):
+    def __init__(self, s):
+        super().__init__()
+        self.s = s
+
     def do_addmon(self, args):
         """
         Добавление монстра на поле.
@@ -33,27 +38,26 @@ class Game(cmd.Cmd):
 
         if len(args := shlex.split(args)) == 8 and args[0] in list_cows:
             msg = "addmon " + shlex.join(args)
-            s.send((msg.strip() + "\n").encode())
+            self.s.send((msg.strip() + "\n").encode())
         elif args[0] not in list_cows:
             print("Cannot add unknown monster")
         else:
             print("Invalid arguments")
 
     def do_up(self, args):
-        s.send(("up\n").encode())
+        self.s.send(("up\n").encode())
 
     def do_down(self, args):
-        s.send(("down\n").encode())
+        self.s.send(("down\n").encode())
 
     def do_left(self, args):
-        s.send(("left\n").encode())
+        self.s.send(("left\n").encode())
 
     def do_right(self, args):
-        s.send(("right\n").encode())
+        self.s.send(("right\n").encode())
 
     def do_attack(self, args):
-        """
-        Атаковать монстра (стандратная атака наносит 10 урона).
+        """Атаковать монстра (стандратная атака наносит 10 урона).
 
         attack <name> with <weapon>
 
@@ -65,33 +69,35 @@ class Game(cmd.Cmd):
         match args := shlex.split(args):
             case [t, "with", weapon]:
                 if weapon in WEAPONS:
-                    s.send(
+                    self.s.send(
                         (" ".join(["attack", t, str(WEAPONS[weapon])]) + "\n").encode()
                     )
                 else:
                     print("Unknown weapon")
             case [t]:
-                s.send((" ".join(["attack", t, str(WEAPONS["sword"])]) + "\n").encode())
+                self.s.send(
+                    (" ".join(["attack", t, str(WEAPONS["sword"])]) + "\n").encode()
+                )
             case _:
                 print("Invalid arguments")
 
-    
     def do_sayall(self, args):
-        message = "sayall " + args + '\n'
-        s.send(message.encode())
+        message = "sayall " + args + "\n"
+        self.s.send(message.encode())
 
     def do_quit(self, args):
-        s.send("quit\n".encode())
+        self.s.send("quit\n".encode())
         self.onecmd("exit")
 
     def do_exit(self, args):
         """
         Завершает работу коммандной строки.
         """
+
         return 1
 
 
-def get_reponse():
+def get_reponse(s):
     while True:
         ans = s.recv(2048).decode()
         if ans:
@@ -107,15 +113,22 @@ def get_reponse():
 
 
 def main():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(("localhost", 1338))
+        s.send(f"{sys.argv[1]}\n".encode())
+        start(s)
+
+
+def start(s):
     print("<<< Welcome to Python-MUD 0.1 >>>")
     print("Active session:")
     print(s.recv(1024).decode())
 
     global cmdline
-    cmdline = Game()
-    gm = threading.Thread(target=get_reponse, args=())
+    cmdline = Game(s)
+    gm = threading.Thread(target=get_reponse, args=(s,))
     gm.start()
-    Game().cmdloop()
+    Game(s).cmdloop()
 
 
 if __name__ == "__main__":
