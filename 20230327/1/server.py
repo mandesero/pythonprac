@@ -187,6 +187,9 @@ async def echo(reader, writer):
                         writer.write(ans[0].encode())
                         await writer.drain()
 
+                case ["sayall", *text]:
+                    clt.broadcast((clt.name + ": " + " ".join(text).strip()).encode())
+
                 case ["quit"]:
                     break
 

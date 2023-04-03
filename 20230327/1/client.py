@@ -77,7 +77,7 @@ class Game(cmd.Cmd):
 
     
     def do_sayall(self, args):
-        message = args + '\n'
+        message = "sayall " + args + '\n'
         s.send(message.encode())
 
     def do_quit(self, args):
