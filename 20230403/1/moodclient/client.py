@@ -11,9 +11,34 @@ import threading
 import readline
 from typing import TypeAlias
 from collections.abc import Mapping
+from io import StringIO
 
-from defaults import WEAPONS, cust_mstr
 
+WEAPONS = {
+    "sword": 10,
+    "spear": 15,
+    "axe": 20,
+}
+
+cust_mstr = cs.read_dot_cow(
+    StringIO(
+        """
+$the_cow = <<EOC;
+         $thoughts
+          $thoughts
+    ,_                    _,
+    ) '-._  ,_    _,  _.-' (
+    )  _.-'.|\\--//|.'-._  (
+     )'   .'\/o\/o\/'.   `(
+      ) .' . \====/ . '. (
+       )  / <<    >> \  (
+        '-._/``  ``\_.-'
+  jgs     __\\'--'//__
+         (((""`  `"")))
+EOC
+"""
+    )
+)
 
 list_cows = cs.list_cows() + ["jgsbat"]
 
@@ -107,6 +132,7 @@ class Game(cmd.Cmd):
         Sends a message to all players.
 
         :param message: (str) The text of the message to send.
+
         :return: None
         """
         message = "sayall " + args + "\n"
@@ -114,7 +140,7 @@ class Game(cmd.Cmd):
 
     def do_quit(self, args):
         """
-        Quit from MOOD.
+        Disconnect from the server.
 
             :return: None
         """

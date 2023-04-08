@@ -6,7 +6,12 @@ import asyncio
 from collections import defaultdict
 from typing import Optional, Tuple
 
-from defaults import WEAPONS
+
+WEAPONS = {
+    "sword": 10,
+    "spear": 15,
+    "axe": 20,
+}
 
 
 class Client:
@@ -16,22 +21,6 @@ class Client:
 
     Attributes:
         client_list: (dict) A class-level dictionary mapping client names to client objects.
-
-    Methods:
-        __init__(self, name: str, addr: str) -> None: Initializes a new client with the given name, address, and hero
-        object. Adds the client to the client list.
-
-        connect(name: str, addr: str) -> bool: Static method that creates a new client and adds it to the client list
-        with the given name and address.
-
-        meta(name: str) -> Optional[Client]: Static method that retrieves the client with the given name from the client
-        list.
-
-        disconnect(name: str) -> None: Static method that removes the client with the given name from the client list.
-
-        __str__(self) -> str: Returns a string representation of the client object.
-
-        broadcast(self, msg: str) -> None: Sends a message to all clients in the client list except for the calling client.
     """
 
     client_list = {}
@@ -66,7 +55,7 @@ class Client:
         return True
 
     @staticmethod
-    def meta(name: str) -> Optional[Client]:
+    def meta(name: str):
         """
         Static method that retrieves the client with the given name from the client list.
 
@@ -124,9 +113,6 @@ class Hero:
 
     Attributes:
         WEAPONS: (dict) A class-level dictionary mapping weapon names to damage values.
-
-    Methods:
-        __init__(self) -> None: Initializes a new hero with the default position of [0, 0].
     """
 
     WEAPONS = WEAPONS
@@ -145,13 +131,10 @@ class Monster:
     Attributes:
         None
 
-    Methods:
-        __init__(self, name: str, hello_string: str, hp: int, coords: Tuple[int, int]) -> None: Initializes a new
-        monster with the given name, greeting message, hitpoints, and coordinates.
     """
 
     def __init__(
-        self, name: str, hello_string: str, hp: int, coords: Tuple[int, int]
+        self, name: str, hello_string: str, hp: int, coords: list[int]
     ) -> None:
         """
         Initializes a new monster with the given name, greeting message, hitpoints, and coordinates.
@@ -176,12 +159,6 @@ class Game:
         ways (dict): dictionary of possible directions
         field (list): game field
 
-    Methods:
-        init(player: Optional[Client]) -> None: initializes player instance
-        add_monster(monster: Optional[Monster]) -> str: adds monster to the game field
-        encounter(x: int, y: int) -> Tuple(str, str): checks if there is a monster at a specific location and returns monster message and name
-        change_hero_pos(way: str) -> str: changes hero's position on the field
-        attack(pos: Tuple(int, int), name: str, dmg: int) -> Tuple(str, bool): carries out an attack on a monster at a specific location
     """
 
     ways = {
@@ -218,7 +195,7 @@ class Game:
 
         return msg
 
-    def encounter(self, x: int, y: int) -> Tuple(str, str):
+    def encounter(self, x: int, y: int) -> tuple[str]:
         """
         Checks if there is a monster at a specific location and returns monster message and name
 
@@ -250,7 +227,7 @@ class Game:
 
         return msg
 
-    def attack(self, pos: Tuple(int, int), name: str, dmg: int) -> Tuple(str, bool):
+    def attack(self, pos: tuple[int], name: str, dmg: int) -> tuple[str]:
         """
         Carries out an attack on a monster at a specific location
 
