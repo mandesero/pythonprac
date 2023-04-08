@@ -3,8 +3,11 @@
 import cowsay as cs
 import shlex
 import asyncio
+import threading
 from collections import defaultdict
 from typing import Optional, Tuple
+from time import sleep
+from random import choice
 
 
 WEAPONS = {
@@ -15,6 +18,7 @@ WEAPONS = {
 
 
 class Client:
+
     """
     A client object, representing a player in a multiplayer game. Each client has a name, address, hero object, and writer
     object for sending messages to other clients.
@@ -129,9 +133,10 @@ class Monster:
     A monster object, representing an enemy character in a multiplayer game.
 
     Attributes:
-        None
-
+        monsters: (list) - list of monsters.
     """
+
+    monsters = []
 
     def __init__(
         self, name: str, hello_string: str, hp: int, coords: list[int]
@@ -149,6 +154,7 @@ class Monster:
         self.msg = hello_string
         self.hp = hp
         self.coords = coords
+        Monster.monsters.append(self)
 
 
 class Game:
@@ -259,6 +265,41 @@ class Game:
         return msg, flag
 
 
+def monster_moving(delay=30):
+    dangeon = Game(None)
+    monsters = Monster.monsters
+    while True:
+        print("TRY TO MOVE IT MOVE IT")
+        if monsters:
+            monster = choice(monsters)
+            x, y = monster.coords
+            move = choice(list(Game.ways.items()))
+            _x, _y = move[1][0], move[1][1]
+            new_x, new_y = (x + _x) % 10, (y + _y) % 10
+
+            if not Game.field[new_x][new_y]:
+                msg = f"{monster.name} moved one cell {move[0]}"
+                monster.coords = (new_x, new_y)
+                Game.field[new_x][new_y] = monster
+                Game.field[x][y] = None
+
+                for _, obj in Client.client_list.items():
+                    obj.writer.write(msg.encode())
+
+                text, name = dangeon.encounter(*monster.coords)
+                msg = cs.cowsay(message=text, cow=name)
+                for _, obj in filter(
+                    lambda u: tuple(u[1].hero.pos) == monster.coords,
+                    Client.client_list.items(),
+                ):
+                    obj.writer.write(msg.encode())
+
+            else:
+                continue
+
+        sleep(delay)
+
+
 async def echo(reader, writer):
     host, port = writer.get_extra_info("peername")
     print(f"New connection from {host}:{port}")
@@ -335,6 +376,8 @@ async def echo(reader, writer):
 
 
 async def main():
+    thr = threading.Thread(target=monster_moving, args=(30,))
+    thr.start()
     server = await asyncio.start_server(echo, "0.0.0.0", 1338)
     async with server:
         await server.serve_forever()
