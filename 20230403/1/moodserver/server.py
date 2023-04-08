@@ -4,14 +4,45 @@ import cowsay as cs
 import shlex
 import asyncio
 from collections import defaultdict
+from typing import Optional, Tuple
 
 from defaults import WEAPONS
 
 
 class Client:
+    """
+    A client object, representing a player in a multiplayer game. Each client has a name, address, hero object, and writer
+    object for sending messages to other clients.
+
+    Attributes:
+        client_list: (dict) A class-level dictionary mapping client names to client objects.
+
+    Methods:
+        __init__(self, name: str, addr: str) -> None: Initializes a new client with the given name, address, and hero
+        object. Adds the client to the client list.
+
+        connect(name: str, addr: str) -> bool: Static method that creates a new client and adds it to the client list
+        with the given name and address.
+
+        meta(name: str) -> Optional[Client]: Static method that retrieves the client with the given name from the client
+        list.
+
+        disconnect(name: str) -> None: Static method that removes the client with the given name from the client list.
+
+        __str__(self) -> str: Returns a string representation of the client object.
+
+        broadcast(self, msg: str) -> None: Sends a message to all clients in the client list except for the calling client.
+    """
+
     client_list = {}
 
-    def __init__(self, name, addr):
+    def __init__(self, name: str, addr: str) -> None:
+        """
+        Initializes a new client with the given name, address, and hero object. Adds the client to the client list.
+
+            :param name: (str) The name of the client.
+            :param addr: (str) The address of the client.
+        """
         self.name = name
         self.addr = addr
         self.hero = None
@@ -19,7 +50,15 @@ class Client:
         Client.client_list.update({name: self})
 
     @staticmethod
-    def connect(name, addr):
+    def connect(name: str, addr: str) -> bool:
+        """
+        Static method that creates a new client and adds it to the client list with the given name and address.
+
+            :param name: (str) The name of the client to be added.
+            :param addr: (str) The address of the client to be added.
+            :return: (bool) True if the client was successfully added to the client list, False otherwise.
+        """
+
         if name in Client.client_list:
             return False
 
@@ -27,23 +66,51 @@ class Client:
         return True
 
     @staticmethod
-    def meta(name):
+    def meta(name: str) -> Optional[Client]:
+        """
+        Static method that retrieves the client with the given name from the client list.
+
+            :param name: (str) The name of the client to be retrieved.
+            :return: (Client or None) The client object with the given name if it exists in the client list, or None otherwise.
+        """
+
         if name in Client.client_list:
             return Client.client_list[name]
 
     @staticmethod
-    def disconnect(name):
+    def disconnect(name: str) -> None:
+        """
+        Static method that removes the client with the given name from the client list.
+
+            :param name: (str) The name of the client to be removed.
+            :return: None
+        """
+
         if Client.meta(name):
             Client.client_list.pop(name)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the client object.
+
+            :return: (str) A string representation of the client object.
+        """
+
         return f"""
         Name: {self.name}
         Addr: {self.addr}
         Pos : {self.hero.pos}
         """
 
-    def broadcast(self, msg):
+    def broadcast(self, msg: str) -> None:
+        """
+        Sends a message to all clients in the client list except for the calling client.
+
+            :param self: (Client) The client sending the message.
+            :param msg: (str) The message to be sent to other clients.
+            :return: None
+        """
+
         for _, obj in filter(lambda u: u[0] != self.name, Client.client_list.items()):
             obj.writer.write(msg)
 
@@ -52,14 +119,49 @@ list_cows = cs.list_cows() + ["jgsbat"]
 
 
 class Hero:
+    """
+    A hero object, representing the player's character in a multiplayer game.
+
+    Attributes:
+        WEAPONS: (dict) A class-level dictionary mapping weapon names to damage values.
+
+    Methods:
+        __init__(self) -> None: Initializes a new hero with the default position of [0, 0].
+    """
+
     WEAPONS = WEAPONS
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initializes a new hero with the default position of [0, 0].
+        """
         self.pos = [0, 0]
 
 
 class Monster:
-    def __init__(self, name, hello_string, hp, coords):
+    """
+    A monster object, representing an enemy character in a multiplayer game.
+
+    Attributes:
+        None
+
+    Methods:
+        __init__(self, name: str, hello_string: str, hp: int, coords: Tuple[int, int]) -> None: Initializes a new
+        monster with the given name, greeting message, hitpoints, and coordinates.
+    """
+
+    def __init__(
+        self, name: str, hello_string: str, hp: int, coords: Tuple[int, int]
+    ) -> None:
+        """
+        Initializes a new monster with the given name, greeting message, hitpoints, and coordinates.
+
+        :param name: (str) The name of the monster.
+        :param hello_string: (str) The greeting string that the monster outputs.
+        :param hp: (int) The hitpoints of the monster.
+        :param coords: (tuple) The coordinates of the monster on the field in the format (x, y).
+        """
+
         self.name = name
         self.msg = hello_string
         self.hp = hp
@@ -67,6 +169,21 @@ class Monster:
 
 
 class Game:
+    """
+    Game class for MOOD.
+
+    Attributes:
+        ways (dict): dictionary of possible directions
+        field (list): game field
+
+    Methods:
+        init(player: Optional[Client]) -> None: initializes player instance
+        add_monster(monster: Optional[Monster]) -> str: adds monster to the game field
+        encounter(x: int, y: int) -> Tuple(str, str): checks if there is a monster at a specific location and returns monster message and name
+        change_hero_pos(way: str) -> str: changes hero's position on the field
+        attack(pos: Tuple(int, int), name: str, dmg: int) -> Tuple(str, bool): carries out an attack on a monster at a specific location
+    """
+
     ways = {
         "up": (0, 1),
         "down": (0, -1),
@@ -76,10 +193,22 @@ class Game:
 
     field = [[None] * 10 for _ in range(10)]
 
-    def __init__(self, player):
+    def __init__(self, player: Optional[Client]) -> None:
+        """
+        Initializes player for the game
+
+        :param player: (Client) client instance for player
+        """
         self.player = player
 
-    def add_monster(self, monster):
+    def add_monster(self, monster: Optional[Monster]) -> str:
+        """
+        Adds monster to the game field
+
+        :param monster: (Monster) monster instance
+        :return: (str) message regarding monster addition
+        """
+
         i, j = monster.coords
         msg = f"Added monster {monster.name} to {monster.coords} saying {monster.msg}."
         if self.field[i][j]:
@@ -89,10 +218,26 @@ class Game:
 
         return msg
 
-    def encounter(self, x, y):
+    def encounter(self, x: int, y: int) -> Tuple(str, str):
+        """
+        Checks if there is a monster at a specific location and returns monster message and name
+
+
+        :param x: (int) x-coordinate
+        :param y: (int) y-coordinate
+        :return: (str, str) monster message and name
+        """
+
         return self.field[x][y].msg, self.field[x][y].name
 
-    def change_hero_pos(self, way):
+    def change_hero_pos(self, way: str) -> str:
+        """
+        Changes hero's position on the field
+
+        :param way: (str) direction of movement
+        :return: (str) message regarding hero's movement and possible encounter with monster
+        """
+
         x, y = Game.ways[way]
 
         i = self.player.hero.pos[0] = (x + self.player.hero.pos[0]) % 10
@@ -105,7 +250,16 @@ class Game:
 
         return msg
 
-    def attack(self, pos, name, dmg):
+    def attack(self, pos: Tuple(int, int), name: str, dmg: int) -> Tuple(str, bool):
+        """
+        Carries out an attack on a monster at a specific location
+
+        :param pos: (int, int) monster coordinates in the field
+        :param name: (str) monster name
+        :param dmg: (int) damage to be inflicted
+        :return: (str, bool) message regarding the attack and boolean flag indicating whether the attack was carried out or not
+        """
+
         msg = "No monster here"
         i, j = pos
         flag = False
