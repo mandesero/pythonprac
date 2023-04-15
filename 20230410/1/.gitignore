@@ -1,2 +1,5 @@
 doc/_build/
 doc/_static/
+*.po
+*.mo
+*.swp

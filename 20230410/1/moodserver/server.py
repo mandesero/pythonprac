@@ -4,11 +4,20 @@ import cowsay as cs
 import shlex
 import asyncio
 import threading
+import locale
+import gettext
+import os
 from collections import defaultdict
 from typing import Optional, Tuple
 from time import sleep
 from random import choice
+from babel import Locale
 
+     
+popath = os.path.join(os.path.dirname(__file__), "po")
+print(popath)
+# translation = gettext.translation("server", popath, fallback=True)
+# _, ngettext = translation.gettext, translation.ngettext
 
 WEAPONS = {
     "sword": 10,
@@ -40,6 +49,7 @@ class Client:
         self.addr = addr
         self.hero = None
         self.writer = None
+        self.locale = None
         Client.client_list.update({name: self})
 
     @staticmethod
@@ -362,6 +372,21 @@ async def echo(reader, writer):
                 case ["sayall", *text]:
                     clt.broadcast((clt.name + ": " + " ".join(text).strip()).encode())
 
+                case ["locale", locale]:
+                    clt.locale = tuple(locale.split("."))
+
+                    if clt.locale == ('ru_RU', 'UTF8'):
+                        loc = Locale(*clt.locale)
+                    else:
+                        loc = Locale('C', 'UTF8')
+
+                    trans = gettext.translation('server', localedir=popath, languages=[loc.language])
+                    trans.install()
+                    message = trans.gettext("Set up locale: {}").format(locale)
+                    print(message)
+                    # writer.write(_("Set up locale: {}").format(locale).encode())
+                    # await writer.drain()
+                
                 case ["quit"]:
                     break
 
