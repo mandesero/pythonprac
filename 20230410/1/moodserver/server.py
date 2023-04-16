@@ -16,7 +16,9 @@ from babel import Locale
      
 popath = os.path.join(os.path.dirname(__file__), "po")
 print(popath)
-# translation = gettext.translation("server", popath, fallback=True)
+translation = gettext.translation("server", popath, languages=['en'], fallback=True)
+translation_ru = gettext.translation("server", popath, languages=['ru'], fallback=True)
+
 # _, ngettext = translation.gettext, translation.ngettext
 
 WEAPONS = {
@@ -49,7 +51,7 @@ class Client:
         self.addr = addr
         self.hero = None
         self.writer = None
-        self.locale = None
+        self.locale = translation
         Client.client_list.update({name: self})
 
     @staticmethod
@@ -373,19 +375,17 @@ async def echo(reader, writer):
                     clt.broadcast((clt.name + ": " + " ".join(text).strip()).encode())
 
                 case ["locale", locale]:
-                    clt.locale = tuple(locale.split("."))
 
-                    if clt.locale == ('ru_RU', 'UTF8'):
-                        loc = Locale(*clt.locale)
+                    if locale == 'ru_RU.UTF8':
+                        clt.locale = translation_ru
+                        clt.locale.install()
                     else:
-                        loc = Locale('C', 'UTF8')
+                        clt.locale.install()
 
-                    trans = gettext.translation('server', localedir=popath, languages=[loc.language])
-                    trans.install()
-                    message = trans.gettext("Set up locale: {}").format(locale)
+                    writer.write(_("Set up locale: {}").format(locale).encode())
+                    message = _("There will be no translation of all messages, because due to the already formed structure of the mud, in my humble opinion, rewriting the structure of the entire module is not advisable, all commands imply  setting the locale and sticking the function _ on the message")
                     print(message)
-                    # writer.write(_("Set up locale: {}").format(locale).encode())
-                    # await writer.drain()
+                    await writer.drain()
                 
                 case ["quit"]:
                     break
