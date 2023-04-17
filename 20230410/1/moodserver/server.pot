@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-04-16 22:10+0300\n"
+"POT-Creation-Date: 2023-04-17 18:00+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#: server.py:385
-msgid "Set up locale: {}"
-msgstr ""
+#: server.py:242
+msgid "Moved to ({}, {})"
+msgstr "Перешел в ({}, {})"
 
-#: server.py:386
-msgid ""
-"There will be no translation of all messages, because due to the already "
-"formed structure of the mud, in my humble opinion, rewriting the "
-"structure of the entire module is not advisable, all commands imply  "
-"setting the locale and sticking the function _ on the message"
-msgstr ""
+#: server.py:390
+msgid "Set up locale: {}"
+msgstr "Установлена локаль: {}"
 

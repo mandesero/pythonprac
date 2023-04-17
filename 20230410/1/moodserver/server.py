@@ -8,19 +8,23 @@ import locale
 import gettext
 import os
 from collections import defaultdict
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TypeAlias
 from time import sleep
 from random import choice
 from babel import Locale
 
+
+# === States ===
+State: TypeAlias = int
+
+NEW_USER = 1
+
      
 popath = os.path.join(os.path.dirname(__file__), "po")
-print(popath)
 translation = gettext.translation("server", popath, languages=['en'], fallback=True)
 translation_ru = gettext.translation("server", popath, languages=['ru'], fallback=True)
 
-# _, ngettext = translation.gettext, translation.ngettext
-
+list_cows = cs.list_cows() + ["jgsbat"]
 WEAPONS = {
     "sword": 10,
     "spear": 15,
@@ -37,7 +41,7 @@ class Client:
     Attributes:
         client_list: (dict) A class-level dictionary mapping client names to client objects.
     """
-
+    
     client_list = {}
 
     def __init__(self, name: str, addr: str) -> None:
@@ -67,7 +71,7 @@ class Client:
         if name in Client.client_list:
             return False
 
-        _ = Client(name, addr)
+        Client(name, addr)
         return True
 
     @staticmethod
@@ -101,13 +105,13 @@ class Client:
             :return: (str) A string representation of the client object.
         """
 
-        return f"""
-        Name: {self.name}
-        Addr: {self.addr}
-        Pos : {self.hero.pos}
-        """
+        name = f"Name     : {self.name}"
+        addr = f"Address  : {self.addr}"
+        pos = f"Position : {self.hero.pos}"
 
-    def broadcast(self, msg: str) -> None:
+        return "\n".join((name, addr, pos)) + "\n"
+
+    def broadcast(self, msg: str, state: State = None) -> None:
         """
         Sends a message to all clients in the client list except for the calling client.
 
@@ -116,11 +120,8 @@ class Client:
             :return: None
         """
 
-        for _, obj in filter(lambda u: u[0] != self.name, Client.client_list.items()):
-            obj.writer.write(msg)
-
-
-list_cows = cs.list_cows() + ["jgsbat"]
+        for _, obj in filter(lambda u: u[0] != self.name, Client.client_list.items()):        
+            obj.writer.write(msg.encode())
 
 
 class Hero:
@@ -238,7 +239,7 @@ class Game:
         i = self.player.hero.pos[0] = (x + self.player.hero.pos[0]) % 10
         j = self.player.hero.pos[1] = (y + self.player.hero.pos[1]) % 10
 
-        msg = f"Moved to ({i}, {j})"
+        msg = _("Moved to ({}, {})").format(i, j)
         if self.field[i][j]:
             text, name = self.encounter(i, j)
             msg += cs.cowsay(message=text, cow=name)
@@ -328,8 +329,11 @@ async def echo(reader, writer):
         clt = Client.meta(usr)
         clt.hero = Hero()
         clt.writer = writer
-        writer.write(str(Client.meta(usr)).encode())
-        clt.broadcast(("\n New user:\n" + str(Client.meta(usr))).encode())
+
+        clt.locale.install()
+        meta = str(Client.meta(usr)) + '\n'
+        writer.write(meta.encode())
+        clt.broadcast(meta, NEW_USER)
 
         dungeon = Game(clt)
         while not reader.at_eof():
@@ -339,8 +343,9 @@ async def echo(reader, writer):
             print(msg)
             match msg:
                 case way if len(way) == 1 and way[0] in Game.ways:
-                    ans = dungeon.change_hero_pos(way[0])
-                    writer.write(ans.encode())
+                    clt.locale.install()
+                    ans = _(dungeon.change_hero_pos(way[0]))
+                    writer.write(_(ans).encode())
                     await writer.drain()
 
                 case ["addmon", *args]:
@@ -378,13 +383,11 @@ async def echo(reader, writer):
 
                     if locale == 'ru_RU.UTF8':
                         clt.locale = translation_ru
-                        clt.locale.install()
                     else:
-                        clt.locale.install()
+                        clt.locale = translation
 
+                    clt.locale.install()
                     writer.write(_("Set up locale: {}").format(locale).encode())
-                    message = _("There will be no translation of all messages, because due to the already formed structure of the mud, in my humble opinion, rewriting the structure of the entire module is not advisable, all commands imply  setting the locale and sticking the function _ on the message")
-                    print(message)
                     await writer.drain()
                 
                 case ["quit"]:
