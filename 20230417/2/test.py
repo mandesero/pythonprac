@@ -1,55 +1,35 @@
 from unittest import main, TestCase
-import moodserver
+from unittest.mock import MagicMock
+import moodclient
 import multiprocessing
 import socket
 import time
 from asyncio import run
 import cowsay
+import cmd
 
 
-class Test_Server(TestCase):
-    def send_recv(s, data):
-        s.send(data.encode())
-        return s.recv(1024).decode()
-
-    @classmethod
-    def setUpClass(cls):
-        cls.proc = multiprocessing.Process(target=moodserver.run_serve)
-        cls.proc.start()
-
-        time.sleep(2)
-
+class Test_Client(TestCase):
     def setUp(self):
-        _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _socket.connect(("localhost", 1338))
-        self.s = _socket
+        self.socket = MagicMock()
+        self.res = []
+        self.socket.send = lambda x: self.res.append(x)
+        self.socket.recv = lambda x: "".encode()
+        self.game = moodclient.Game(self.socket)
 
-    
+
     def test_1(self):
-        self.s.send("milk\n".encode())
-        buff = Test_Server.send_recv(self.s, "addmon default hello hi coords 1 1 hp 15\n")
-    
-        self.assertEqual(buff, "Added monster default to (1, 1) saying hi.")
+        self.game.onecmd("up")
+        self.assertEqual(self.res[0].decode(), "up\n")
 
     def test_2(self):
-        self.s.send("milk\n".encode())
-        buff = Test_Server.send_recv(self.s, "up\n")
-        self.assertEqual(buff, 'Moved to (0, 1)')
-        buff = Test_Server.send_recv(self.s, "right\n")
-        ans = 'Moved to (1, 1)' + cowsay.cowsay("hi") 
-        self.assertEqual(buff, ans)
-    
+        self.game.onecmd("addmon default hello hi coords 1 1 hp 15")
+        self.assertEqual(self.res[0].decode(), "addmon default hello hi coords 1 1 hp 15\n")
+
     def test_3(self):
-        self.s.send("milk\n".encode())
-        Test_Server.send_recv(self.s, "addmon default hello hi coords 0 0 hp 15\n")
-        buff = Test_Server.send_recv(self.s, "attack default 10\n")
-        self.assertEqual(buff, 'Attacked default, damage 10 hp\ndefault now has 5 hp')
+        self.game.onecmd("attack default with axe")
+        self.assertEqual(self.res[0].decode(), "attack default 20\n")
 
-
-
-    def tearDown(self):
-        self.s.close()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.proc.terminate()
+    def test_r(self):
+        self.game.onecmd("attack dragon")
+        self.assertEqual(self.res[0].decode(), "attack dragon 10\n")
