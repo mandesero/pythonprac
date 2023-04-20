@@ -4,27 +4,12 @@ import cowsay as cs
 import shlex
 import asyncio
 import threading
-import locale
-import gettext
-import os
 from collections import defaultdict
-from typing import Optional, Tuple, TypeAlias
+from typing import Optional, Tuple
 from time import sleep
 from random import choice
-from babel import Locale
 
 
-# === States ===
-State: TypeAlias = int
-
-NEW_USER = 1
-
-     
-popath = os.path.join(os.path.dirname(__file__), "po")
-translation = gettext.translation("server", popath, languages=['en'], fallback=True)
-translation_ru = gettext.translation("server", popath, languages=['ru'], fallback=True)
-
-list_cows = cs.list_cows() + ["jgsbat"]
 WEAPONS = {
     "sword": 10,
     "spear": 15,
@@ -41,7 +26,7 @@ class Client:
     Attributes:
         client_list: (dict) A class-level dictionary mapping client names to client objects.
     """
-    
+
     client_list = {}
 
     def __init__(self, name: str, addr: str) -> None:
@@ -55,7 +40,6 @@ class Client:
         self.addr = addr
         self.hero = None
         self.writer = None
-        self.locale = translation
         Client.client_list.update({name: self})
 
     @staticmethod
@@ -71,7 +55,7 @@ class Client:
         if name in Client.client_list:
             return False
 
-        Client(name, addr)
+        _ = Client(name, addr)
         return True
 
     @staticmethod
@@ -105,13 +89,13 @@ class Client:
             :return: (str) A string representation of the client object.
         """
 
-        name = f"Name     : {self.name}"
-        addr = f"Address  : {self.addr}"
-        pos = f"Position : {self.hero.pos}"
+        return f"""
+        Name: {self.name}
+        Addr: {self.addr}
+        Pos : {self.hero.pos}
+        """
 
-        return "\n".join((name, addr, pos)) + "\n"
-
-    def broadcast(self, msg: str, state: State = None) -> None:
+    def broadcast(self, msg: str) -> None:
         """
         Sends a message to all clients in the client list except for the calling client.
 
@@ -120,8 +104,11 @@ class Client:
             :return: None
         """
 
-        for _, obj in filter(lambda u: u[0] != self.name, Client.client_list.items()):        
-            obj.writer.write(msg.encode())
+        for _, obj in filter(lambda u: u[0] != self.name, Client.client_list.items()):
+            obj.writer.write(msg)
+
+
+list_cows = cs.list_cows() + ["jgsbat"]
 
 
 class Hero:
@@ -239,7 +226,7 @@ class Game:
         i = self.player.hero.pos[0] = (x + self.player.hero.pos[0]) % 10
         j = self.player.hero.pos[1] = (y + self.player.hero.pos[1]) % 10
 
-        msg = _("Moved to ({}, {})").format(i, j)
+        msg = f"Moved to ({i}, {j})"
         if self.field[i][j]:
             text, name = self.encounter(i, j)
             msg += cs.cowsay(message=text, cow=name)
@@ -282,7 +269,7 @@ def monster_moving(delay=30):
     dangeon = Game(None)
     monsters = Monster.monsters
     while True:
-        print("TRY TO MOVE IT MOVE IT")
+        #print("TRY TO MOVE IT MOVE IT")
         if monsters:
             monster = choice(monsters)
             x, y = monster.coords
@@ -315,13 +302,11 @@ def monster_moving(delay=30):
 
 async def echo(reader, writer):
     host, port = writer.get_extra_info("peername")
-    print(f"New connection from {host}:{port}")
     usr = await reader.readline()
     usr = usr.decode().strip()
 
     if not Client.connect(usr, f"{host}:{port}"):
         writer.write(f"User with login {usr} already exists.\n".encode())
-        print(f"Disconnect {host}:{port}")
         writer.close()
         await writer.wait_closed()
 
@@ -329,27 +314,20 @@ async def echo(reader, writer):
         clt = Client.meta(usr)
         clt.hero = Hero()
         clt.writer = writer
-
-        clt.locale.install()
-        meta = str(Client.meta(usr)) + '\n'
-        writer.write(meta.encode())
-        clt.broadcast(meta, NEW_USER)
+        clt.broadcast(("\n New user:\n" + str(Client.meta(usr))).encode())
 
         dungeon = Game(clt)
         while not reader.at_eof():
             data = await reader.readline()
             msg = shlex.split(data.decode().strip())
             ans = ""
-            print(msg)
             match msg:
                 case way if len(way) == 1 and way[0] in Game.ways:
-                    clt.locale.install()
-                    ans = _(dungeon.change_hero_pos(way[0]))
-                    writer.write(_(ans).encode())
+                    ans = dungeon.change_hero_pos(way[0])
+                    writer.write(ans.encode())
                     await writer.drain()
 
                 case ["addmon", *args]:
-                    print("Addmon")
                     if len(args) == 8:
                         if args[0] in list_cows:
                             ans = dungeon.add_monster(
@@ -363,14 +341,14 @@ async def echo(reader, writer):
                                     ),
                                 )
                             )
-                            print(ans)
+                            writer.write(ans.encode())
                             clt.broadcast((clt.name + ": " + ans).encode())
+                            
 
                 case ["attack", *args]:
-                    print("Attack")
                     ans = dungeon.attack(clt.hero.pos, args[0], int(args[1]))
-                    print(ans)
                     if ans[1]:
+                        writer.write(ans[0].encode())
                         clt.broadcast((clt.name + ": " + ans[0]).encode())
                     else:
                         writer.write(ans[0].encode())
@@ -379,17 +357,6 @@ async def echo(reader, writer):
                 case ["sayall", *text]:
                     clt.broadcast((clt.name + ": " + " ".join(text).strip()).encode())
 
-                case ["locale", locale]:
-
-                    if locale == 'ru_RU.UTF8':
-                        clt.locale = translation_ru
-                    else:
-                        clt.locale = translation
-
-                    clt.locale.install()
-                    writer.write(_("Set up locale: {}").format(locale).encode())
-                    await writer.drain()
-                
                 case ["quit"]:
                     break
 
